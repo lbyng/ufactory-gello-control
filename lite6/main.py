@@ -5,33 +5,8 @@ import socket
 import json
 import threading
 import numpy as np
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
-
 from xarm.wrapper import XArmAPI
-
-
-#######################################################
-"""
-Connect to xArm
-"""
-if len(sys.argv) >= 2:
-    ip = sys.argv[1]
-else:
-    try:
-        from configparser import ConfigParser
-        parser = ConfigParser()
-        parser.read('robot.conf')
-        ip = parser.get('xArm', 'ip')
-    except:
-        ip = input('Please input the xArm ip address:')
-        if not ip:
-            print('input error, exit')
-            sys.exit(1)
-########################################################
-
-HOST = '0.0.0.0'
-PORT = 12345
+import user_config as uc
 
 received_data = {
     'pos': [400, 0, 150],
@@ -48,9 +23,9 @@ def socket_server():
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     try:
-        server_socket.bind((HOST, PORT))
+        server_socket.bind((uc.HOST, uc.PORT))
         server_socket.listen(1)
-        print(f"Server listening on {HOST}:{PORT}")
+        print(f"Server listening on {uc.HOST}:{uc.PORT}")
         
         while running:
             try:
@@ -117,9 +92,9 @@ def map_axis_value(value, src_min, src_max, dst_min, dst_max):
 def map_position(controller_pos):
     x, y, z = controller_pos
     
-    x_sim = map_axis_value(x, 0.2, 0.38, 120, 400)
-    y_sim = map_axis_value(y, 0.20, -0.10, -400, 400)
-    z_sim = map_axis_value(z, 0.18, 0.4, 80, 450)
+    x_sim = map_axis_value(x, uc.X_MAP[0], uc.X_MAP[1], uc.X_MAP[2], uc.X_MAP[3])
+    y_sim = map_axis_value(y, uc.Y_MAP[0], uc.Y_MAP[1], uc.Y_MAP[2], uc.Y_MAP[3])
+    z_sim = map_axis_value(z, uc.Z_MAP[0], uc.Z_MAP[1], uc.Z_MAP[2], uc.Z_MAP[3])
     
     return [x_sim, y_sim, z_sim]
 
@@ -248,7 +223,7 @@ def main():
     socket_thread.daemon = True
     socket_thread.start()
     
-    arm = XArmAPI(ip)
+    arm = XArmAPI(uc.ip)
     arm.motion_enable(enable=True)
     arm.set_mode(0)
     arm.set_state(state=0)
