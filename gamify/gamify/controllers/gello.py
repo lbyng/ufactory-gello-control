@@ -238,7 +238,7 @@ class GelloControllerWrapper:
         return pos, rmat, gripper
 
 class SingleArmClient:
-    def __init__(self, host='localhost', port=12345):
+    def __init__(self, host, port):
         self.host = host
         self.port = port
         self.socket = None
@@ -296,8 +296,6 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="Single Arm Gello Controller Client")
     parser.add_argument('--port', type=str, default="/dev/cu.usbmodem58FA0820271")
-    parser.add_argument('--host', type=str, default="localhost", help="Simulator Host")
-    parser.add_argument('--socket_port', type=int, default=12345, help="Simulator Port")
     parser.add_argument('--view', action='store_true', help="Launch MuJoCo viewer")
     
     args = parser.parse_args()
@@ -313,7 +311,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Controller creation failed: {e}")
     
-    client = SingleArmClient(host=args.host, port=args.socket_port)
+    client = SingleArmClient(host="localhost", port=12345)
     
     try:
         if args.view:
@@ -327,7 +325,7 @@ if __name__ == "__main__":
                     while True:
                         pos, rmat, gripper = wrapper.get_ee_pos_rmat_gripper()
                         
-                        rmat_to_quat(rmat)
+                        quat = rmat_to_quat(rmat)
                         
                         client.send_data(pos, quat, gripper)
                         
@@ -345,8 +343,7 @@ if __name__ == "__main__":
             while True:
                 pos, rmat, gripper = wrapper.get_ee_pos_rmat_gripper()
                 
-
-                rmat_to_quat(rmat)
+                quat = rmat_to_quat(rmat)
                 
                 client.send_data(pos, quat, gripper)
                 
